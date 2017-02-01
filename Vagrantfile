@@ -16,7 +16,9 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.synced_folder "data/conf", "/opt/psql-conf", mount_options: ["dmode=700,fmode=600"], owner: 0, group: 0, create: true
 
-  config.vm.provision "shell", path: "provision/01-psql.sh"
+  config.vm.provision "shell", path: "provision/01-persistent.sh"
+  config.vm.provision "shell", path: "provision/02-cleanservices.sh"
+  config.vm.provision "shell", path: "provision/02-psql.sh"
 
   config.persistent_storage.enabled = true
   config.persistent_storage.location = File.realpath(".").to_s + "/data/psql.vdi"
@@ -25,7 +27,8 @@ Vagrant.configure("2") do |config|
   config.persistent_storage.filesystem = 'ext4'
   config.persistent_storage.mountpoint = '/var/lib/postgresql'
   config.persistent_storage.volgroupname = 'pgvg'
-  config.persistent_storage.mountoptions = ['defaults', 'noatime']
+  config.persistent_storage.mountoptions = ['defaults', 'noatime', 'data=writeback']
+  config.persistent_storage.diskdevice = '/dev/sdc'
 
   config.vm.provider "virtualbox" do |v| 
     v.linked_clone = true

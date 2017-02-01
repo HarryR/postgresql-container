@@ -85,13 +85,13 @@ fi
 
 # Update package list and upgrade all packages
 dpkg --configure -a
-apt-get purge -y snapd lxcfs lxc-common lxd lxd-client open-iscsi
+# apt-get purge -y snapd lxcfs lxc-common lxd lxd-client open-iscsi
 apt-get update
-apt-get -y dist-upgrade
+# apt-get -y dist-upgrade
 
 apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION"
 
-apt-get autoremove --purge -y
+# apt-get autoremove --purge -y
 
 PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
 PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
