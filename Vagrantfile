@@ -18,6 +18,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell", path: "provision/01-persistent.sh"
   config.vm.provision "shell", path: "provision/02-cleanservices.sh"
+  config.vm.provision "shell", path: "provision/02-ufw.sh"
   config.vm.provision "shell", path: "provision/02-psql.sh"
 
   config.persistent_storage.enabled = true
