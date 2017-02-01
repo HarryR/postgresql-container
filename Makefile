@@ -8,4 +8,5 @@ psql:
 
 xxx-destroy:
 	vagrant destroy
-	rm -rf data .vagrant
+	vboxmanage closemedium data/psql.vdi || true
+	rm -rf data/psql.vdi data/conf .vagrant *.log

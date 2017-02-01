@@ -73,22 +73,6 @@ then
   exit
 fi
 
-PG_REPO_APT_SOURCE=/etc/apt/sources.list.d/pgdg.list
-if [ ! -f "$PG_REPO_APT_SOURCE" ]
-then
-  # Add PG apt repo:
-  echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > "$PG_REPO_APT_SOURCE"
-
-  # Add PGDG repo key:
-  wget --quiet -O - https://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | apt-key add -
-fi
-
-# Update package list and upgrade all packages
-dpkg --configure -a
-# apt-get purge -y snapd lxcfs lxc-common lxd lxd-client open-iscsi
-apt-get update
-# apt-get -y dist-upgrade
-
 apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION"
 
 # apt-get autoremove --purge -y
@@ -121,6 +105,8 @@ CREATE DATABASE $APP_DB_NAME WITH OWNER=$APP_DB_USER
                                   TEMPLATE=template0;
 GRANT ALL PRIVILEGES ON DATABASE $APP_DB_NAME TO $APP_DB_USER;
 EOF
+
+systemctl enable postgresql@.service
 
 # Tag the provision time:
 date > "$PROVISIONED_ON"
