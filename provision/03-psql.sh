@@ -63,36 +63,44 @@ print_db_usage () {
 
 export DEBIAN_FRONTEND=noninteractive
 
-PROVISIONED_ON=/etc/vm_provision_on_timestamp
-if [ -f "$PROVISIONED_ON" ]
+PROV_DATA=$DATA_ROOT/.provisioned$PG_VERSION
+PROV_ROOT=/.provisioned-psql$PG_VERSION
+if [ -f "$PROV_DATA" ] && [ -f "$PROV_ROOT" ];
 then
-  echo "VM was already provisioned at: $(cat $PROVISIONED_ON)"
-  echo "To run system updates manually login via 'vagrant ssh' and run 'apt-get update && apt-get upgrade'"
+  echo "VM provisioned at - data:$(cat $PROV_DATA) root:$(cat PROV_ROOT)"
   echo ""
   print_db_usage
   exit
 fi
 
-apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION"
+if [ ! -f "$PROV_ROOT" ]; then
+	apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION"
 
-# apt-get autoremove --purge -y
+	# apt-get autoremove --purge -y
 
-PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
-PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
-PG_DIR="/var/lib/postgresql/$PG_VERSION/main"
+	PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
+	PG_HBA="/etc/postgresql/$PG_VERSION/main/pg_hba.conf"
+	PG_DIR="/var/lib/postgresql/$PG_VERSION/main"
+	CONF_DIR=`dirname $PG_CONF`
 
-# Edit postgresql.conf to change listen address to '*':
-sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" "$PG_CONF"
+	mkdir -p $CONF_DIR $DATA_ROOT
 
-# Append to pg_hba.conf to add password auth:
-echo "host    all             all             all                     md5" >> "$PG_HBA"
+	# Edit postgresql.conf to change listen address to '*':
+	sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" "$PG_CONF"
 
-# Explicitly set default client_encoding
-echo "client_encoding = utf8" >> "$PG_CONF"
+	# Append to pg_hba.conf to add password auth:
+	echo "host    all             all             all                     md5" >> "$PG_HBA"
 
-# Restart so that all new config is loaded:
-service postgresql restart
+	# Explicitly set default client_encoding
+	echo "client_encoding = utf8" >> "$PG_CONF"
 
+	# Restart so that all new config is loaded:
+	service postgresql restart
+
+	touch $PROV_ROOT
+fi
+
+if [ ! -f "$PROV_DATA" ]; then
 cat << EOF | su - postgres -c psql
 -- Create the database user:
 CREATE USER $APP_DB_USER WITH PASSWORD '$APP_DB_PASS';
@@ -106,10 +114,11 @@ CREATE DATABASE $APP_DB_NAME WITH OWNER=$APP_DB_USER
 GRANT ALL PRIVILEGES ON DATABASE $APP_DB_NAME TO $APP_DB_USER;
 EOF
 
-systemctl enable postgresql@.service
+systemctl enable postgresql@$PG_VERSION.service
 
 # Tag the provision time:
-date > "$PROVISIONED_ON"
+date > "$PROV_DATA"
+fi
 
 echo "Successfully created PostgreSQL dev virtual machine."
 echo ""
