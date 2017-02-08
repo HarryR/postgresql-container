@@ -16,12 +16,11 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.synced_folder "data/conf", "/opt/psql-conf", mount_options: ["dmode=700,fmode=600"], owner: 0, group: 0, create: true
 
-  config.vm.provision "shell", path: "provision/02-cleanservices.sh"
-  config.vm.provision "shell", path: "provision/02-ufw.sh"
+  config.vm.provision "shell", path: "provision/01-cleanservices.sh"
   config.vm.provision "shell", path: "provision/02-apt.sh"
-  
-  config.vm.provision "shell", path: "provision/03-persistent.sh"
-  config.vm.provision "shell", path: "provision/03-psql.sh"
+  config.vm.provision "shell", path: "provision/03-ufw.sh"
+  config.vm.provision "shell", path: "provision/04-persistent.sh"
+  config.vm.provision "shell", path: "provision/05-psql.sh"
 
   config.persistent_storage.enabled = true
   config.persistent_storage.location = File.realpath(".").to_s + "/data/psql.vdi"

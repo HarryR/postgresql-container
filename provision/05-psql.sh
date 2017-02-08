@@ -61,6 +61,18 @@ print_db_usage () {
   echo "  PGUSER=$APP_DB_USER PGPASSWORD=$APP_DB_PASS psql -h localhost -p 5432 $APP_DB_NAME"
 }
 
+function keep_line () {
+  # keep_line file "line here"
+  grep "$2" "$1" > /dev/null
+  OK=$?
+  if [ $OK -ne 0 ]; then
+    echo $2 >> $1
+  fi
+}
+
+mkdir -p $DATA_ROOT/conf.$PG_VERSION
+ln -s $DATA_ROOT/conf.$PG_VERSION /etc/postgresql
+
 export DEBIAN_FRONTEND=noninteractive
 
 PROV_DATA=$DATA_ROOT/.provisioned$PG_VERSION
@@ -89,10 +101,11 @@ if [ ! -f "$PROV_ROOT" ]; then
 	sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" "$PG_CONF"
 
 	# Append to pg_hba.conf to add password auth:
-	echo "host    all             all             all                     md5" >> "$PG_HBA"
+
+	keep_line "$PG_HBA" "host    all             all             all                     md5"
 
 	# Explicitly set default client_encoding
-	echo "client_encoding = utf8" >> "$PG_CONF"
+	keep_line "$PG_CONF" "client_encoding = utf8"
 
 	# Restart so that all new config is loaded:
 	service postgresql restart
@@ -114,7 +127,8 @@ CREATE DATABASE $APP_DB_NAME WITH OWNER=$APP_DB_USER
 GRANT ALL PRIVILEGES ON DATABASE $APP_DB_NAME TO $APP_DB_USER;
 EOF
 
-systemctl enable postgresql@$PG_VERSION.service
+systemctl enable postgresql@.service
+systemctl enable postgresql.service
 
 # Tag the provision time:
 date > "$PROV_DATA"
@@ -123,3 +137,4 @@ fi
 echo "Successfully created PostgreSQL dev virtual machine."
 echo ""
 print_db_usage
+

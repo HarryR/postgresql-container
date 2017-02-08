@@ -5,6 +5,14 @@ BACKUP_FILES=$(sort $(addsuffix .tar.xz, $(BACKUP_TODAY) $(BACKUPS_DAILY) $(BACK
 
 backup: backups backups/$(BACKUP_TODAY).tar.xz
 
+backup-restart:
+	vagrant halt
+	make backup clean-backups
+	vagrant up
+
+install:
+	vagrant plugin install vagrant-persistent-storage
+
 backups/$(BACKUP_TODAY).tar.xz: data/* data/conf/*
 	tar -cJvpf $@.tmp data/
 	mv $@.tmp $@
@@ -21,7 +29,7 @@ clean-backups:
 
 all: up
 
-up:
+vagrant-up:
 	vagrant up
 
 psql:
