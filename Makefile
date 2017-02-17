@@ -61,7 +61,7 @@ clean-backups:
 	for FILE in $(filter-out $(addprefix backups/,$(BACKUP_FILES)), $(wildcard backups/*.tar.xz)); do rm $$FILE; done
 
 psql:
-	PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
+	#PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
 
 
 ###############################################################
@@ -87,6 +87,8 @@ docker-create: $(CONF)/env data/psql
 docker-destroy:
 	docker rm $(shell cat $(CONF)/psql-db) -f || true
 
+docker-psql:
+	docker exec -e PGUSER=$(shell cat $(CONF)/psql-user) -e PGPASSWORD=$(shell cat $(CONF)/psql-pass) -ti $(shell cat $(CONF)/psql-db) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
 
 ###############################################################
 
