@@ -2,6 +2,7 @@
 
 DATA_ROOT=/var/lib/postgresql
 CONF_ROOT=/opt/psql-conf
+CONF_DB_FILE="$CONF_ROOT/psql-db"
 CONF_USER_FILE="$CONF_ROOT/psql-user"
 CONF_PASS_FILE="$CONF_ROOT/psql-pass"
 
@@ -12,14 +13,14 @@ CONF_PASS_FILE="$CONF_ROOT/psql-pass"
 
 if [[ -z $APP_DB_USER ]]; then
   if [[ ! -f "$CONF_USER_FILE" ]]; then
-    openssl rand -base64 12 | tr -dc 'a-z' > "$CONF_USER_FILE"
+    openssl rand -base64 40 | tr -dc 'a-z' | cut -c 1-8 > "$CONF_USER_FILE"
   fi
   APP_DB_USER=`cat $CONF_USER_FILE`
 fi
 
 if [[ -z $APP_DB_PASS ]]; then
   if [[ ! -f "$CONF_PASS_FILE" ]]; then
-    openssl rand -base64 12 | tr -dc 'a-zA-Z' > "$CONF_PASS_FILE"
+    openssl rand -base64 40 | tr -dc 'a-zA-Z' | cut -c 1-15 > "$CONF_PASS_FILE"
   fi
   APP_DB_PASS=`cat $CONF_PASS_FILE`
 fi
@@ -27,6 +28,9 @@ fi
 # Edit the following to change the name of the database that is created (defaults to the user name)
 if [[ -z $APP_DB_NAME ]]; then
   APP_DB_NAME=$APP_DB_USER
+  if [[ -f "$CONF_DB_FILE" ]]; then
+    APP_DB_NAME=`cat $CONF_DB_FILE`
+  fi
 fi
 
 # Edit the following to change the version of PostgreSQL that is installed

@@ -15,30 +15,33 @@ all:
 $(CONF):
 	mkdir -p $(CONF)
 
+$(CONF)/psql-db: $(CONF)
+	if [ ! -f $@ ]; then basename `pwd` > $@ ; fi
+
 $(CONF)/psql-user: $(CONF)
-	if [ ! -f $@ ]; then openssl rand -base64 12 | tr -dc 'a-z' > $@; fi
+	if [ ! -f $@ ]; then openssl rand -base64 40 | tr -dc 'a-z' | cut -c 1-8 > $@; fi
 
 $(CONF)/psql-pass: $(CONF)
-	if [ ! -f $@ ]; then openssl rand -base64 12 | tr -dc 'a-zA-Z' > $@; fi
+	if [ ! -f $@ ]; then openssl rand -base64 40 | tr -dc 'a-zA-Z' | cut -c 1-15 > $@; fi
 
-$(CONF)/env: $(CONF)/psql-pass $(CONF)/psql-user
-$(CONF)/env: DERP:=$(shell tempfile)
+$(CONF)/env: $(CONF)/psql-pass $(CONF)/psql-user $(CONF)/psql-db
+$(CONF)/env: TMPENV:=$(shell tempfile)
 $(CONF)/env:
-	echo '' > $(DERP)
+	echo '' > $(TMPENV)
 
-	echo -n 'POSTGRES_USER=' >> $(DERP)
-	cat $(CONF)/psql-user >> $(DERP)
-	echo '' >> $(DERP)
+	echo -n 'POSTGRES_USER=' >> $(TMPENV)
+	cat $(CONF)/psql-user >> $(TMPENV)
+	echo '' >> $(TMPENV)
 
-	echo -n 'POSTGRES_DB=' >> $(DERP)
-	cat $(CONF)/psql-user >> $(DERP)
-	echo '' >> $(DERP)
+	echo -n 'POSTGRES_DB=' >> $(TMPENV)
+	cat $(CONF)/psql-db >> $(TMPENV)
+	echo '' >> $(TMPENV)
 
-	echo -n 'POSTGRES_PASSWORD=' >> $(DERP)
-	cat $(CONF)/psql-pass >> $(DERP)
-	echo '' >> $(DERP)
+	echo -n 'POSTGRES_PASSWORD=' >> $(TMPENV)
+	cat $(CONF)/psql-pass >> $(TMPENV)
+	echo '' >> $(TMPENV)
 
-	mv -f $(DERP) $@
+	mv -f $(TMPENV) $@
 
 
 backup: backups backups/$(BACKUP_TODAY).tar.xz
@@ -58,7 +61,7 @@ clean-backups:
 	for FILE in $(filter-out $(addprefix backups/,$(BACKUP_FILES)), $(wildcard backups/*.tar.xz)); do rm $$FILE; done
 
 psql:
-	PGUSER=$(shell cat data/conf/psql-user) PGPASSWORD=$(shell cat data/conf/psql-pass) psql -h localhost -p 5432 $(shell cat data/conf/psql-user)
+	PGUSER=$(shell cat data/conf/psql-user) PGPASSWORD=$(shell cat data/conf/psql-pass) psql -h localhost -p 5432 $(shell cat data/conf/psql-db)
 
 
 ###############################################################
@@ -104,4 +107,4 @@ vagrant-destroy:
 	vboxmanage closemedium data/psql.vdi || true
 
 xxx-destroy-data:
-	rm -rf data/psql.vdi data/conf .vagrant *.log
+	rm -rf data/psql.vdi data/conf data/psql .vagrant *.log
