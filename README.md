@@ -1,20 +1,27 @@
 # PostgreSQL 9.5 container with daily backups
 
-Creates a container for PostgreSQL 9.5 for Vagrant+VirtualBox or Docker.
+Creates a container for PostgreSQL 9.5 for Vagrant+VirtualBox or Docker which takes nightly backups.
 
-The database name will be the name of the directory you checkout the repository into,
-this means for each database you want to maintain
+The database name will be the name of the directory you checkout the repository into, to create a database called 'myapp-db' run:
 
-    git clone https://github.com/HarryR/vagrant-psql.git myapp-psql
+    git clone https://github.com/HarryR/vagrant-psql.git myapp-db
 
-A random schema name, login and password are chosen when provisioned, details are displayed on the console.
+To get started with Docker, run:
 
-	make vagrant-install vagrant-up psql
+	make docker-build docker-run dockerl-psql
 
-Daily and weekly backups for the past week and then month are kept in the `backups` directory, add a cron job to perform the backup:
+To get started with Vagrant, run:
 
-    @daily make -C /path-to-vagrant/dir vagrant-backup
-    @reboot make -C /path-to-vagrant/dir vagrant-up
+	make vagrant-install vagrant-up
+
+A random login and password are chosen when provisioned, these are stored in the `data/conf` directory, run `make credentials` to display them.
+
+## Backups
+
+Daily backups are made for a week, and then each sundays backups for a month are kept in the `backups` directory, to setup backups add a cron job for the container type you chose:
+
+    @daily make -C /path-to/this-dir/ vagrant-backup
+    @daily make -C /path-to/this-dir/ docker-backup
 
 Each Sunday's backups will be kept, and the past 7 days will be kept, resulting in files like:
 
@@ -28,12 +35,18 @@ Each Sunday's backups will be kept, and the past 7 days will be kept, resulting 
  * `backups/20161222.tar.xz`
  * `backups/20161223.tar.xz`
 
-If your database grows to a large size then while these backups are compressed they will accumulate many slightly different files and consume space, you can push the weekly or monthly backups remotely into the cloud.
+You cannot restore the data from a Docker container into a Vagrant instance or visa versa. What you do with the backups is your business, but I suggest encrypting and uploading to the cloud with [transfer.py](https://github.com/0x27/transfer.py).
 
 Restore from the latest available snapshot is possible, put the .tar.xz file into the `backups/` directory and run:
 
-    make restore vagrant-up
+    make restore
+
+## Misc
 
 To destroy the box, and all runtime data, but will not delete backups:
 
-    make vagrant-destroy xxx-destroy-data
+    make xxx-destroy-data
+
+To automatically start a Vagrant container at boot, use:
+
+    @reboot make -C /path-to/this-dir/ vagrant-up

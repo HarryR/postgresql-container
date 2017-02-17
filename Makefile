@@ -9,7 +9,19 @@ DOCKER_BASETAG=harryr/psql
 
 
 all:
-	@echo "?"
+	@echo "make ..."
+	@echo " - credentials"
+	@echo " - psql"
+	@echo " - vagrant-install"
+	@echo " - vagrant-backup"
+	@echo " - vagrant-up"
+	@echo " - docker-psql"
+	@echo " - docker-backup"
+	@echo " - docker-run"
+	@echo " - docker-stop"
+	@echo " - docker-start"
+	@echo " - restore"
+	@echo " - xxx-destroy-data"
 
 
 $(CONF):
@@ -44,6 +56,11 @@ $(CONF)/env:
 	mv -f $(TMPENV) $@
 
 
+credentials: $(CONF)/psql-db $(CONF)/psql-user $(CONF)/psql-pass
+	@echo "Database: `cat $(CONF)/psql-db`"
+	@echo "Username: `cat $(CONF)/psql-user`"
+	@echo "Password: `cat $(CONF)/psql-pass`"
+
 backup: backups backups/$(BACKUP_TODAY).tar.xz
 
 backups/$(BACKUP_TODAY).tar.xz: data/* data/conf/*
@@ -56,12 +73,12 @@ restore: backup.tar.xz
 backup.tar.xz:
 	for FILE in `echo $(addprefix backups/,$(BACKUP_FILES)) | xargs -n 1 echo | sort -r`; do if [ -f $$FILE ]; then ln -s $$FILE backup.tar.xz; break; fi; done
  
-.PHONY: clean-backups
-clean-backups: 
+.PHONY: trim-backups
+trim-backups: 
 	for FILE in $(filter-out $(addprefix backups/,$(BACKUP_FILES)), $(wildcard backups/*.tar.xz)); do rm $$FILE; done
 
 psql:
-	#PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
+	PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
 
 
 ###############################################################
@@ -76,12 +93,12 @@ docker-stop:
 	docker stop $(shell cat $(CONF)/psql-db)
 
 docker-backup: docker-stop
-	make backup clean-backups docker-start
+	make backup trim-backups docker-start
 
 docker-start:
 	docker start $(shell cat $(CONF)/psql-db)
 
-docker-create: $(CONF)/env data/psql
+docker-run: $(CONF)/env data/psql
 	docker run --name $(shell cat $(CONF)/psql-db) -h psql -p 5432:5432 --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data --restart unless-stopped $(DOCKER_BASETAG)
 
 docker-destroy:
@@ -95,7 +112,7 @@ docker-psql:
 
 vagrant-backup:
 	vagrant halt
-	make backup clean-backups
+	make backup trim-backups
 	vagrant up
 
 vagrant-install:
