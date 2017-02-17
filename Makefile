@@ -82,7 +82,7 @@ docker-start:
 	docker start $(shell cat $(CONF)/psql-db)
 
 docker-create: $(CONF)/env data/psql
-	docker run --name $(shell cat $(CONF)/psql-db) -h psql -p 5432:5432 --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data $(DOCKER_BASETAG)
+	docker run --name $(shell cat $(CONF)/psql-db) -h psql -p 5432:5432 --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data --restart unless-stopped $(DOCKER_BASETAG)
 
 docker-destroy:
 	docker rm $(shell cat $(CONF)/psql-db) -f || true

@@ -2,6 +2,11 @@
 
 Creates a container for PostgreSQL 9.5 for Vagrant+VirtualBox or Docker.
 
+The database name will be the name of the directory you checkout the repository into,
+this means for each database you want to maintain
+
+    git clone https://github.com/HarryR/vagrant-psql.git myapp-psql
+
 A random schema name, login and password are chosen when provisioned, details are displayed on the console.
 
 	make vagrant-install vagrant-up psql
