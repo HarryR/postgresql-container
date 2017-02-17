@@ -61,7 +61,7 @@ clean-backups:
 	for FILE in $(filter-out $(addprefix backups/,$(BACKUP_FILES)), $(wildcard backups/*.tar.xz)); do rm $$FILE; done
 
 psql:
-	PGUSER=$(shell cat data/conf/psql-user) PGPASSWORD=$(shell cat data/conf/psql-pass) psql -h localhost -p 5432 $(shell cat data/conf/psql-db)
+	PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
 
 
 ###############################################################
@@ -73,19 +73,19 @@ docker-build:
 	docker build -t $(DOCKER_BASETAG) .
 
 docker-stop:
-	docker stop psql
+	docker stop $(shell cat $(CONF)/psql-db)
 
 docker-backup: docker-stop
 	make backup clean-backups docker-start
 
 docker-start:
-	docker start psql
+	docker start $(shell cat $(CONF)/psql-db)
 
 docker-create: $(CONF)/env data/psql
-	docker run --name psql -h psql -p 5432:5432 --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data $(DOCKER_BASETAG)
+	docker run --name $(shell cat $(CONF)/psql-db) -h psql -p 5432:5432 --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data $(DOCKER_BASETAG)
 
 docker-destroy:
-	docker rm psql -f || true
+	docker rm $(shell cat $(CONF)/psql-db) -f || true
 
 
 ###############################################################
