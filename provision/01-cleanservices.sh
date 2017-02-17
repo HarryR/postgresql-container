@@ -25,4 +25,7 @@ service lxcfs stop
 systemctl disable lxcfs.service
 
 apt-get purge -y snapd snap-confine ubuntu-core-launcher lxd lxd-client open-iscsi lxcfs lxc-common accountsservice
+
+apt-get purge -y apport python3-apport
+
 apt-get autoremove --purge -y

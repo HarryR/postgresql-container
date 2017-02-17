@@ -1,14 +1,15 @@
-# PostgreSQL 9.5 in a Vagrant Box
+# PostgreSQL 9.5 container with daily backups
 
-Creates a Vagrant box containing PostgreSQL 9.5, uses vagrant-persistent-storage and GNU make.
+Creates a container for PostgreSQL 9.5 for Vagrant+VirtualBox or Docker.
 
 A random schema name, login and password are chosen when provisioned, details are displayed on the console.
 
-	make install vagrant-up psql
+	make vagrant-install vagrant-up psql
 
 Daily and weekly backups for the past week and then month are kept in the `backups` directory, add a cron job to perform the backup:
 
-    @daily make -C /path-to-vagrant/dir backup-restart
+    @daily make -C /path-to-vagrant/dir vagrant-backup
+    @reboot make -C /path-to-vagrant/dir vagrant-up
 
 Each Sunday's backups will be kept, and the past 7 days will be kept, resulting in files like:
 
@@ -30,4 +31,4 @@ Restore from the latest available snapshot is possible, put the .tar.xz file int
 
 To destroy the box, and all runtime data, but will not delete backups:
 
-    make xxx-destroy
+    make vagrant-destroy xxx-destroy-data

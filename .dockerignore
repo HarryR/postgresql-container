@@ -1,0 +1,6 @@
+/backups
+/data/*
+.git
+.vagrant
+*.vdi
+backup.tar.xz
