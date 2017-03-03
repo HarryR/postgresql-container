@@ -17,7 +17,6 @@ all:
 	@echo " - vagrant-up"
 	@echo " - docker-psql"
 	@echo " - docker-backup"
-	@echo " - docker-run"
 	@echo " - docker-stop"
 	@echo " - docker-start"
 	@echo " - restore"
@@ -95,11 +94,8 @@ docker-stop:
 docker-backup: docker-stop
 	make backup trim-backups docker-start
 
-docker-start:
-	docker start $(shell cat $(CONF)/psql-db)
-
-docker-run: $(CONF)/env data/psql
-	docker run --name $(shell cat $(CONF)/psql-db) -h psql -p 5432:5432 --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data --restart unless-stopped $(DOCKER_BASETAG)
+docker-start: $(CONF)/env data/psql
+	docker run -d --name $(shell cat $(CONF)/psql-db) -h $(shell cat $(CONF)/psql-db) --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data --restart=unless-stopped $(DOCKER_BASETAG)
 
 docker-destroy:
 	docker rm $(shell cat $(CONF)/psql-db) -f || true
