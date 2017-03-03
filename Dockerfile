@@ -1,13 +1,10 @@
 FROM ubuntu:16.04
-ADD provision /app/provision
 VOLUME /var/lib/postgresql
 
 # Modified version of official Postgre 9.5 Dockerfile
 # From: https://github.com/docker-library/postgres/blob/04b1d366d51a942b88fff6c62943f92c7c38d9b6/9.5/Dockerfile
 # For more information, see:
 # https://github.com/docker-library/docs/tree/master/postgres
-
-FROM ubuntu:16.04
 
 ENV DEBIAN_FRONTEND noninteractive
 
