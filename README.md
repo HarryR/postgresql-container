@@ -8,7 +8,7 @@ The database name will be the name of the directory you checkout the repository 
 
 To get started with Docker, run:
 
-	make docker-build docker-run docker-psql
+	make docker-build docker-create docker-psql
 
 To get started with Vagrant, run:
 

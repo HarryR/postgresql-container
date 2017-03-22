@@ -78,7 +78,10 @@ trim-backups:
 	for FILE in $(filter-out $(addprefix backups/,$(BACKUP_FILES)), $(wildcard backups/*.tar.xz)); do rm $$FILE; done
 
 psql:
-	PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h localhost -p 5432 $(shell cat $(CONF)/psql-db)
+	PGIP=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(shell cat $(CONF)/psql-db)`; \
+	if [ ! -z "$PGIP" ]; then \
+		PGUSER=$(shell cat $(CONF)/psql-user) PGPASSWORD=$(shell cat $(CONF)/psql-pass) psql -h $$PGIP -p 5432 $(shell cat $(CONF)/psql-db); \
+	fi
 
 
 ###############################################################
@@ -99,7 +102,13 @@ docker-start:
 	docker start $(shell cat $(CONF)/psql-db)
 
 docker-run: $(CONF)/env data/psql
+	docker run --name $(shell cat $(CONF)/psql-db) -h $(shell cat $(CONF)/psql-db) --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data $(DOCKER_BASETAG)
+
+docker-create: $(CONF)/env data/psql
 	docker run -d --name $(shell cat $(CONF)/psql-db) -h $(shell cat $(CONF)/psql-db) --env-file=$(CONF)/env -v `pwd`/data/psql:/var/lib/postgresql/data --restart=unless-stopped $(DOCKER_BASETAG)
+
+docker-shell:
+	docker exec -ti $(shell cat $(CONF)/psql-db) bash
 
 docker-destroy:
 	docker rm $(shell cat $(CONF)/psql-db) -f || true

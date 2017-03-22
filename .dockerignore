@@ -1,5 +1,6 @@
-/backups
-/data/*
+backups
+data/psql
+data/conf
 .git
 .vagrant
 *.vdi
