@@ -110,6 +110,8 @@ docker-create: $(CONF)/env data/psql
 docker-shell:
 	docker exec -ti $(shell cat $(CONF)/psql-db) bash
 
+docker-delete: docker-destroy
+
 docker-destroy:
 	docker rm $(shell cat $(CONF)/psql-db) -f || true
 
